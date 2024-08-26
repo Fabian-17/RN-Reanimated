@@ -1,70 +1,107 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useEffect } from "react";
+import Animated, {
+  useSharedValue,
+  withTiming,
+  useAnimatedStyle,
+  Easing,
+} from "react-native-reanimated";
+import { View, Button, Text, StyleSheet } from "react-native";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+export default function AnimatedStyleUpdateExample(props: any) {
+  // Variables de animación
+  const randomWidth = useSharedValue<number>(10);
+  const translateY = useSharedValue<number>(-250);
+  const backgroundColor = useSharedValue<string>('#e7fefa');
+  const titleOpacity = useSharedValue<number>(1);
 
-export default function HomeScreen() {
+  // Configuración de la animación
+  const config = {
+    duration: 1000,
+    easing: Easing.bezier(0.5, 0.01, 0, 1),
+  };
+
+  // Estilos animados
+  const textStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: withTiming(translateY.value, config) }],
+      opacity: withTiming(titleOpacity.value, config),
+    };
+  });
+
+  const backgroundStyle = useAnimatedStyle(() => {
+    return {
+      backgroundColor: withTiming(backgroundColor.value, config),
+    };
+  });
+
+  // Inicia la animación al cargar la página o al hacer refresh
+  const startAnimation = () => {
+    translateY.value = -250;
+    titleOpacity.value = 1;
+
+    // se inicia la animación de movimiento después de un momento
+    setTimeout(() => {
+      translateY.value = 0;
+    }, 100);
+  };
+
+  useEffect(() => {
+    startAnimation();
+  }, []);
+
+  // Función para refrescar la animación
+  const handleRefresh = () => {
+    // Restablece los valores a su estado inicial
+    backgroundColor.value = '#e7fefa';
+    startAnimation();
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <Animated.View style={[styles.background, backgroundStyle]}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+        }}
+      >
+        <View style={styles.container}>
+          <Animated.Text style={[styles.title, textStyle]}>
+            Mi Título Centrado
+          </Animated.Text>
+        </View>
+
+        <Button
+          title="Iniciar"
+          onPress={() => {
+            randomWidth.value = Math.random() * 350;
+            backgroundColor.value = '#D34'; 
+            titleOpacity.value = 0; 
+          }}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+
+        <Button
+          title="Refresh"
+          onPress={handleRefresh}
+          color="#841584"
+        />
+      </View>
+    </Animated.View>
   );
 }
 
+// Estilos
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  background: {
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  container: {
+    alignItems: "center",
+    justifyContent: "center",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
   },
 });
